@@ -7,63 +7,38 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         /* --- GLOBAL STYLES --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; width: 100%; overflow: hidden; }
         body { font-family: 'Roboto', -apple-system, sans-serif; background-color: #fff; }
         
-        /* --- UTILITY --- */
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
-        /* --- SHARED STYLES --- */
-        .view {
-            height: 100%; width: 100%; display: flex; flex-direction: column;
-            justify-content: space-between; align-items: center; background-color: #fff;
-        }
-        .main-content {
-            width: 100%; padding: 0 32px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; flex-grow: 1; margin-top: -50px;
-        }
-        .form {
-            width: 100%; display: flex; flex-direction: column; gap: 12px;
-        }
-        .form input {
-            width: 100%; padding: 14px; border: 1px solid #dbdbdb;
-            border-radius: 6px; background-color: #fafafa; font-size: 14px;
-        }
+        .view { height: 100%; width: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; background-color: #fff; }
+        .main-content { width: 100%; padding: 0 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; margin-top: -50px; }
+        .form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+        .form input { width: 100%; padding: 14px; border: 1px solid #dbdbdb; border-radius: 6px; background-color: #fafafa; font-size: 14px; }
         .form input:focus { outline: 1px solid #a8a8a8; }
-        .form-button {
-            width: 100%; background-color: #3797f0; color: white; border: none;
-            border-radius: 8px; padding: 14px; font-weight: 600; margin-top: 8px;
-            cursor: pointer; font-size: 14px;
-        }
+        .form-button { width: 100%; background-color: #3797f0; color: white; border: none; border-radius: 8px; padding: 14px; font-weight: 600; margin-top: 8px; cursor: pointer; font-size: 14px; }
         .form-button:disabled { background-color: #8ac9f7; cursor: not-allowed; }
+        .error-message { color: #ed4956; font-size: 14px; text-align: center; margin-top: 15px; display: none; }
         
-        /* --- LOGIN VIEW STYLES --- */
-        #login-view .instagram-logo { width: 180px; margin-bottom: 40px; }
-        #login-view .error-message {
-            color: #ed4956; font-size: 14px; text-align: center;
-            margin-top: 15px; display: none;
-        }
-        #login-view .forgot-password-link {
-            margin-top: 20px; font-size: 12px; color: #00376b;
-            text-decoration: none; text-align: center; font-weight: 500;
-        }
-        #login-view footer {
-            width: 100%; padding: 20px 0; border-top: 1px solid #dbdbdb;
-            text-align: center; font-size: 12px; color: #8e8e8e;
-        }
-        #login-view footer a { color: #000; text-decoration: none; font-weight: 600; }
-
+        /* --- AUTH VIEW STYLES (Login & Signup) --- */
+        .auth-view footer { width: 100%; padding: 20px 0; border-top: 1px solid #dbdbdb; text-align: center; font-size: 12px; color: #8e8e8e; }
+        .auth-view footer a { color: #000; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .auth-view .instagram-logo { width: 180px; margin-bottom: 40px; }
+        .auth-view .forgot-password-link { margin-top: 20px; font-size: 12px; color: #00376b; text-decoration: none; text-align: center; font-weight: 500; cursor: pointer; }
+        
         /* --- FEED VIEW STYLES --- */
         #feed-view { justify-content: flex-start; }
-        #feed-view .header {
-            width: 100%; display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 16px; border-bottom: 1px solid #dbdbdb; position: sticky; top: 0; background-color: #fff; z-index: 10;
-        }
+        #feed-view .header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid #dbdbdb; position: sticky; top: 0; background-color: #fff; z-index: 10; }
         #feed-view .header-logo { height: 29px; }
         #feed-view .header-icons { display: flex; align-items: center; gap: 20px; }
         #feed-view .header-icons svg { width: 24px; height: 24px; cursor: pointer; }
@@ -74,203 +49,241 @@
         .post-header img { width: 32px; height: 32px; border-radius: 50%; margin-right: 12px; }
         .post-header .username { font-weight: 600; }
         .post-image img { width: 100%; height: auto; display: block; }
-        .post-actions { padding: 10px 16px; display: flex; gap: 16px; }
-        .post-actions svg { width: 24px; height: 24px; cursor: pointer; }
-        .post-info { padding: 0 16px 16px; font-size: 14px; }
-        #feed-view .footer-nav {
-            display: flex; justify-content: space-around; align-items: center;
-            padding: 10px 0; border-top: 1px solid #dbdbdb;
-            position: fixed; bottom: 0; width: 100%; background-color: #fff; z-index: 10;
-        }
+        .post-info { padding: 10px 16px 16px; font-size: 14px; }
+        #feed-view .footer-nav { display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid #dbdbdb; position: fixed; bottom: 0; width: 100%; background-color: #fff; z-index: 10; }
         #feed-view .footer-nav svg, #feed-view .footer-nav img { width: 24px; height: 24px; }
         #feed-view .footer-nav img { border-radius: 50%; }
 
         /* --- RESET PASSWORD VIEW STYLES --- */
-        #reset-view .header {
-            width: 100%; text-align: center; padding: 12px; border-bottom: 1px solid #dbdbdb;
-        }
+        #reset-view .header { width: 100%; text-align: center; padding: 12px; border-bottom: 1px solid #dbdbdb; }
         #reset-view .header .back-link { position: absolute; left: 16px; text-decoration: none; color: #000; font-size: 20px; cursor: pointer; }
         #reset-view .header span { font-size: 16px; font-weight: 600; }
         #reset-view .icon { width: 50px; height: 50px; margin-bottom: 16px; }
         #reset-view h2 { font-size: 16px; margin-bottom: 12px; }
         #reset-view p { font-size: 14px; color: #8e8e8e; margin-bottom: 24px; }
-        #reset-view .success-message a { color: #3797f0; font-weight: 600; text-decoration: none; }
+        #reset-view .success-message a { color: #3797f0; font-weight: 600; text-decoration: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <!-- =========== VIEW 1: LOGIN PAGE =========== -->
-    <section id="login-view" class="view">
+    <section id="login-view" class="view auth-view hidden">
         <main class="main-content">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Instagram_logo.svg/1200px-Instagram_logo.svg.png" alt="Instagram" class="instagram-logo">
             <form id="login-form" class="form">
-                <input type="text" id="username" placeholder="Username (use 'user')" required autocapitalize="off" autocorrect="off">
-                <input type="password" id="password" placeholder="Password (use 'password123')" required>
+                <input type="email" id="login-email" placeholder="Email" required autocapitalize="off" autocorrect="off">
+                <input type="password" id="login-password" placeholder="Password" required>
                 <button type="submit" id="login-button" class="form-button">Log in</button>
             </form>
-            <p id="error-message" class="error-message"></p>
-            <a href="#" id="forgot-password-link" class="forgot-password-link">Forgot password?</a>
+            <p id="login-error-message" class="error-message"></p>
+            <a id="forgot-password-link" class="forgot-password-link">Forgot password?</a>
         </main>
-        <footer>
-            <p>Don't have an account? <a href="#">Sign up.</a></p>
-        </footer>
+        <footer><p>Don't have an account? <a id="go-to-signup">Sign up.</a></p></footer>
     </section>
 
-    <!-- =========== VIEW 2: FEED PAGE (Initially Hidden) =========== -->
+    <!-- =========== VIEW 2: SIGN UP PAGE (New) =========== -->
+    <section id="signup-view" class="view auth-view hidden">
+        <main class="main-content">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Instagram_logo.svg/1200px-Instagram_logo.svg.png" alt="Instagram" class="instagram-logo">
+            <form id="signup-form" class="form">
+                <input type="email" id="signup-email" placeholder="Email" required autocapitalize="off" autocorrect="off">
+                <input type="password" id="signup-password" placeholder="Password" required>
+                <button type="submit" id="signup-button" class="form-button">Sign up</button>
+            </form>
+            <p id="signup-error-message" class="error-message"></p>
+        </main>
+        <footer><p>Have an account? <a id="go-to-login">Log in.</a></p></footer>
+    </section>
+
+    <!-- =========== VIEW 3: FEED PAGE =========== -->
     <section id="feed-view" class="view hidden">
         <header class="header">
             <img class="header-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Instagram_logo.svg/1200px-Instagram_logo.svg.png" alt="Instagram">
             <div class="header-icons">
-                <svg aria-label="New post" fill="#262626" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M2 12v3.45c0 2.849 2.15 5.126 4.83 5.126h10.34c2.68 0 4.83-2.277 4.83-5.126V12a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1zm21-1a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v.05A6.09 6.09 0 0 1 6.83 6h10.34A6.09 6.09 0 0 1 23 11.05zM12 4.105a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v2.105a1 1 0 0 0 1 1z"></path></svg>
                 <a class="logout-link">Log Out</a>
             </div>
         </header>
         <main id="feed-container" class="feed-content">
-            <!-- Feed posts will be dynamically inserted here -->
+            <p style="text-align: center; margin-top: 50px;">Loading feed...</p>
         </main>
         <footer class="footer-nav">
             <svg aria-label="Home" fill="#262626" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997A2.997 2.997 0 0 1 15 16.545V22h5V11.543l-6.502-6.502a1.5 1.5 0 0 0-2.12 0L2 11.543V22h5z"></path></svg>
-            <svg aria-label="Search" fill="#262626" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M19 10.5A8.5 8.5 0 1 1 10.5 2a8.5 8.5 0 0 1 8.5 8.5z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="16.511" x2="22" y1="16.511" y2="22"></line></svg>
             <img src="https://i.pravatar.cc/150?u=user" alt="Profile">
         </footer>
     </section>
 
-    <!-- =========== VIEW 3: RESET PASSWORD PAGE (Initially Hidden) =========== -->
+    <!-- =========== VIEW 4: RESET PASSWORD PAGE =========== -->
     <section id="reset-view" class="view hidden">
         <header class="header">
             <a class="back-link">&lsaquo;</a>
             <span id="reset-header-title">Find your account</span>
         </header>
         <main class="main-content">
-            <!-- Initial state of the reset view -->
             <div id="reset-form-container">
                 <svg class="icon" aria-label="Lock" fill="#262626" role="img" viewBox="0 0 96 96"><circle cx="48" cy="48" fill="none" r="47" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle><path d="M64.71 45.1H31.29a3.83 3.83 0 0 0-3.83 3.83V69a3.83 3.83 0 0 0 3.83 3.83h33.42A3.83 3.83 0 0 0 68.54 69V48.93a3.83 3.83 0 0 0-3.83-3.83z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M48 31.55V24.3a9.46 9.46 0 1 0-18.92 0v7.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
                 <h2>Trouble logging in?</h2>
-                <p>Enter your username or email and we'll send a link to get back into your account.</p>
+                <p>Enter your email and we'll send a link to get back into your account.</p>
                 <form id="reset-form" class="form">
-                    <input id="reset-input" type="text" placeholder="Username, email, or mobile" required>
+                    <input id="reset-email" type="email" placeholder="Email" required>
                     <button type="submit" class="form-button">Send login link</button>
                 </form>
+                 <p id="reset-error-message" class="error-message"></p>
             </div>
-            <!-- Success message state (initially hidden) -->
             <div id="reset-success-container" class="hidden">
                  <svg class="icon" aria-label="Checkmark" fill="#262626" role="img" viewBox="0 0 96 96"><circle cx="48" cy="48" fill="none" r="47" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle><path d="M29.5 49.32l10.37 10.37L66.5 34.68" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
                 <h2>Email Sent</h2>
                 <p>We sent an email to the address provided with a link to reset your password.</p>
-                <p class="success-message"><a href="#" class="back-link">Back to Login</a></p>
+                <p class="success-message"><a class="back-link">Back to Login</a></p>
             </div>
         </main>
     </section>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- FIREBASE CONFIGURATION ---
+            // WARNING: This is client-side code. Ensure you have set up
+            // Firebase Security Rules to protect your data.
+            const firebaseConfig = {
+              apiKey: "AIzaSyAumw2AgYHCezvdCscz2w77mKHU-qOZSMw",
+              authDomain: "instagram-c9dc0.firebaseapp.com",
+              databaseURL: "https://instagram-c9dc0-default-rtdb.asia-southeast1.firebasedatabase.app",
+              projectId: "instagram-c9dc0",
+              storageBucket: "instagram-c9dc0.appspot.com",
+              messagingSenderId: "727945328649",
+              appId: "1:727945328649:web:e631f2b2244e6adfd720d8"
+            };
+
+            // --- INITIALIZE FIREBASE ---
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.database();
+
             // --- DOM ELEMENT REFERENCES ---
             const views = document.querySelectorAll('.view');
             const loginView = document.getElementById('login-view');
+            const signupView = document.getElementById('signup-view');
             const feedView = document.getElementById('feed-view');
             const resetView = document.getElementById('reset-view');
 
             const loginForm = document.getElementById('login-form');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const loginButton = document.getElementById('login-button');
-            const errorMessage = document.getElementById('error-message');
-            
-            const forgotPasswordLink = document.getElementById('forgot-password-link');
-            const logoutLink = document.querySelector('.logout-link');
-            const backLinks = document.querySelectorAll('.back-link');
-
+            const signupForm = document.getElementById('signup-form');
             const resetForm = document.getElementById('reset-form');
-            const resetFormContainer = document.getElementById('reset-form-container');
-            const resetSuccessContainer = document.getElementById('reset-success-container');
+
+            const loginErrorMessage = document.getElementById('login-error-message');
+            const signupErrorMessage = document.getElementById('signup-error-message');
+            const resetErrorMessage = document.getElementById('reset-error-message');
 
             const feedContainer = document.getElementById('feed-container');
 
             // --- VIEW MANAGEMENT ---
             function showView(viewId) {
-                views.forEach(view => {
-                    view.classList.add('hidden');
-                });
+                views.forEach(view => view.classList.add('hidden'));
                 document.getElementById(viewId).classList.remove('hidden');
             }
+            
+            // --- AUTHENTICATION STATE OBSERVER ---
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // User is signed in.
+                    console.log('User is logged in:', user.email);
+                    renderFeed();
+                    showView('feed-view');
+                } else {
+                    // User is signed out.
+                    console.log('User is logged out.');
+                    showView('login-view');
+                }
+            });
+
+            // --- NAVIGATION ---
+            document.getElementById('go-to-signup').addEventListener('click', () => showView('signup-view'));
+            document.getElementById('go-to-login').addEventListener('click', () => showView('login-view'));
+            document.getElementById('forgot-password-link').addEventListener('click', () => showView('reset-view'));
+            document.querySelector('.logout-link').addEventListener('click', () => auth.signOut());
+            document.querySelectorAll('.back-link').forEach(link => link.addEventListener('click', () => showView('login-view')));
 
             // --- LOGIN LOGIC ---
-            const CORRECT_USERNAME = 'user';
-            const CORRECT_PASSWORD = 'password123';
-
-            loginForm.addEventListener('submit', (e) => {
+            loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                errorMessage.style.display = 'none';
-                loginButton.disabled = true;
-                loginButton.textContent = 'Logging in...';
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                const button = e.target.querySelector('button');
+                
+                loginErrorMessage.style.display = 'none';
+                button.disabled = true;
 
-                setTimeout(() => {
-                    if (usernameInput.value.trim() === CORRECT_USERNAME && passwordInput.value.trim() === CORRECT_PASSWORD) {
-                        showView('feed-view');
-                        renderFeed(); // Render the feed content upon login
-                    } else {
-                        errorMessage.textContent = 'Sorry, your password was incorrect. Please double-check.';
-                        errorMessage.style.display = 'block';
-                    }
-                    loginButton.disabled = false;
-                    loginButton.textContent = 'Log in';
-                }, 1000);
+                try {
+                    await auth.signInWithEmailAndPassword(email, password);
+                } catch (error) {
+                    loginErrorMessage.textContent = error.message;
+                    loginErrorMessage.style.display = 'block';
+                } finally {
+                    button.disabled = false;
+                }
             });
 
-            // --- NAVIGATION LOGIC ---
-            forgotPasswordLink.addEventListener('click', (e) => {
+            // --- SIGN UP LOGIC ---
+            signupForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                showView('reset-view');
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const button = e.target.querySelector('button');
+
+                signupErrorMessage.style.display = 'none';
+                button.disabled = true;
+
+                try {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                } catch (error) {
+                    signupErrorMessage.textContent = error.message;
+                    signupErrorMessage.style.display = 'block';
+                } finally {
+                    button.disabled = false;
+                }
             });
 
-            logoutLink.addEventListener('click', (e) => {
+            // --- PASSWORD RESET LOGIC ---
+            resetForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                usernameInput.value = ''; // Clear fields for next login
-                passwordInput.value = '';
-                showView('login-view');
-            });
+                const email = document.getElementById('reset-email').value;
+                const button = e.target.querySelector('button');
 
-            backLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    // Reset the reset-password view to its initial state before leaving
-                    resetFormContainer.classList.remove('hidden');
-                    resetSuccessContainer.classList.add('hidden');
-                    showView('login-view');
-                });
-            });
+                resetErrorMessage.style.display = 'none';
+                button.disabled = true;
 
-            // --- RESET PASSWORD LOGIC ---
-            resetForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                if (document.getElementById('reset-input').value.trim() !== '') {
-                    resetFormContainer.classList.add('hidden');
-                    resetSuccessContainer.classList.remove('hidden');
+                try {
+                    await auth.sendPasswordResetEmail(email);
+                    document.getElementById('reset-form-container').classList.add('hidden');
+                    document.getElementById('reset-success-container').classList.remove('hidden');
+                } catch (error) {
+                    resetErrorMessage.textContent = error.message;
+                    resetErrorMessage.style.display = 'block';
+                } finally {
+                    button.disabled = false;
                 }
             });
 
             // --- FEED LOGIC ---
             function renderFeed() {
-                const postsData = [
-                    { username: 'nasa', avatar: 'https://i.pravatar.cc/150?u=nasa', image: 'https://picsum.photos/id/1015/600/600', likes: 1024812 },
-                    { username: 'natgeo', avatar: 'https://i.pravatar.cc/150?u=natgeo', image: 'https://picsum.photos/id/1024/600/600', likes: 875321 }
-                ];
-                
-                feedContainer.innerHTML = ''; // Clear previous content
-                postsData.forEach(post => {
-                    const postElement = document.createElement('article');
-                    postElement.className = 'post';
-                    postElement.innerHTML = `
-                        <div class="post-header"><img src="${post.avatar}" alt="Avatar"><span class="username">${post.username}</span></div>
-                        <div class="post-image"><img src="${post.image}" alt="Post"></div>
-                        <div class="post-info"><div class="likes">${post.likes.toLocaleString()} likes</div></div>`;
-                    feedContainer.appendChild(postElement);
+                const postsRef = db.ref('posts');
+                postsRef.on('value', (snapshot) => {
+                    feedContainer.innerHTML = '';
+                    if (!snapshot.exists()) {
+                        feedContainer.innerHTML = '<p style="text-align:center;margin-top:20px;">No posts yet. Add data to your Firebase Realtime Database!</p>';
+                        return;
+                    }
+                    snapshot.forEach((childSnapshot) => {
+                        const post = childSnapshot.val();
+                        const postElement = document.createElement('article');
+                        postElement.className = 'post';
+                        postElement.innerHTML = `
+                            <div class="post-header"><img src="${post.avatar}" alt="Avatar"><span class="username">${post.username}</span></div>
+                            <div class="post-image"><img src="${post.image}" alt="Post"></div>
+                            <div class="post-info"><div class="likes">${post.likes.toLocaleString()} likes</div></div>`;
+                        feedContainer.appendChild(postElement);
+                    });
                 });
             }
-
-            // --- INITIAL STATE ---
-            // On page load, ensure only the login view is visible.
-            showView('login-view'); 
         });
     </script>
 </body>
